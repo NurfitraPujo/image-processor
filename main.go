@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/NurfitraPujo/image-processor/cmd"
+)
 
 func main() {
-	fmt.Println("running server")
+	cmd.StartServer()
 }

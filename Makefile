@@ -61,7 +61,7 @@ run: build
 .PHONY: build
 build:
 	@echo "Building ${APP_NAME} ${VERSION}"
-	go build -ldflags "-w -s -X bitbucket.org/terbang-ventures/chat-webhook/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X bitbucket.org/terbang-ventures/chat-webhook/version.Version=${VERSION} -X bitbucket.org/terbang-ventures/chat-webhook/version.Environment=${APP_ENV} -X bitbucket.org/terbang-ventures/chat-webhook/version.BuildDate=${BUILD_DATE}" -o bin/${APP_NAME} -trimpath .
+	go build -ldflags "-w -s -X github.com/NurfitraPujo/image-processor/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/NurfitraPujo/image-processor/version.Version=${VERSION} -X github.com/NurfitraPujo/image-processor/version.Environment=${APP_ENV} -X github.com/NurfitraPujo/image-processor/version.BuildDate=${BUILD_DATE}" -o bin/${APP_NAME} -trimpath .
 
 .PHONY: clean
 clean:

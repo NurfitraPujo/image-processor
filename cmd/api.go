@@ -14,6 +14,9 @@ func StartServer() {
 	imgDir := http.FileServer(http.Dir("public/images"))
 	mux.Handle("/images/", http.StripPrefix("/images/", imgDir))
 
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	})
 	mux.HandleFunc("POST /upload", func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseMultipartForm(1024); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

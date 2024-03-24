@@ -7,6 +7,13 @@ services:
     container_name: image-processor
     build:
       dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:8080/health"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
     volumes:
       - images_data:/build/public/images
   prometheus:

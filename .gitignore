@@ -1,3 +1,6 @@
 /bin
-/build
+/build/*.log
+/storage
 *.out
+
+!./storage/images/.gitkeep

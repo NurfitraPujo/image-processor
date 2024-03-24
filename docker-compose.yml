@@ -1,0 +1,36 @@
+version: "3.8"
+name: "image-processor-compose"
+
+services:
+  image-processor-server:
+    image: image-processor
+    container_name: image-processor
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - images_data:/build/public/images
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    volumes:
+      - ./build/prometheus:/etc/prometheus
+      - prom_data:/prometheus
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:
+      - ./build/grafana:/etc/grafana/provisioning/datasources
+volumes:
+  prom_data:
+  images_data:

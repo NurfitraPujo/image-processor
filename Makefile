@@ -63,6 +63,23 @@ build:
 	@echo "Building ${APP_NAME} ${VERSION}"
 	go build -ldflags "-w -s -X github.com/NurfitraPujo/image-processor/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/NurfitraPujo/image-processor/version.Version=${VERSION} -X github.com/NurfitraPujo/image-processor/version.Environment=${APP_ENV} -X github.com/NurfitraPujo/image-processor/version.BuildDate=${BUILD_DATE}" -o bin/${APP_NAME} -trimpath .
 
+.PHONY: build_docker
+build_docker:
+	@echo "Building docker image ${APP_NAME} ${VERSION}"
+	docker build -t image-processor --progress=plain --no-cache . 2>&1 | tee build/docker-build.log
+	docker container create --name image-processor -e PORT=8080 -e INSTANCE_ID=image-processor-1 -p 8080:8080 image-processor
+
+.PHONY: start_container
+start_container:
+	@echo "Starting container image ${APP_NAME} ${VERSION}"
+	docker container start image-processor
+
+.PHONY: clean_docker
+clean_docker:
+	@echo "Removing docker image ${APP_NAME} ${VERSION}"
+	docker container rm image-processor
+	docker image rm image-processor
+
 .PHONY: clean
 clean:
 	@echo "Removing ${APP_NAME} ${VERSION}"

@@ -55,5 +55,9 @@ func StartServer() {
 		w.Write([]byte("uploaded"))
 	})
 
-	http.ListenAndServe(":3000", mux)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	http.ListenAndServe(fmt.Sprintf(":%s", port), mux)
 }

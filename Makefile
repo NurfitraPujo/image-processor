@@ -5,7 +5,7 @@ VERSION      := $(shell git describe --always --tags)
 GIT_COMMIT    = $(shell git rev-parse HEAD)
 GIT_DIRTY     = $(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 BUILD_DATE    = $(shell date '+%Y-%m-%d-%H:%M:%S')
-CGO_ENABLED   = 1
+CGO_ENABLED   = 0
 GOARCH		  = amd64
 GOOS		  = $(shell uname -s)
 
@@ -61,7 +61,7 @@ run: build
 .PHONY: build
 build:
 	@echo "Building ${APP_NAME} ${VERSION}"
-	go build -ldflags "-w -s -X github.com/NurfitraPujo/image-processor/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/NurfitraPujo/image-processor/version.Version=${VERSION} -X github.com/NurfitraPujo/image-processor/version.Environment=${APP_ENV} -X github.com/NurfitraPujo/image-processor/version.BuildDate=${BUILD_DATE}" -o bin/${APP_NAME} -trimpath .
+	CGO_ENABLED=${CGO_ENABLED} go build -ldflags "-w -s -X github.com/NurfitraPujo/image-processor/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY} -X github.com/NurfitraPujo/image-processor/version.Version=${VERSION} -X github.com/NurfitraPujo/image-processor/version.Environment=${APP_ENV} -X github.com/NurfitraPujo/image-processor/version.BuildDate=${BUILD_DATE}" -o bin/${APP_NAME} -trimpath .
 
 .PHONY: build_docker
 build_docker:

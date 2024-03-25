@@ -18,4 +18,13 @@ scrape_configs:
   scheme: http
   static_configs:
   - targets:
-    - localhost:8080
+    - localhost:9090
+- job_name: image-processor
+  honor_timestamps: true
+  scrape_interval: 5s
+  scrape_timeout: 2s
+  metrics_path: /metrics
+  scheme: http
+  static_configs:
+  - targets:
+    - host.docker.internal:8080

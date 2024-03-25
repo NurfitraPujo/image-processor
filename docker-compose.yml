@@ -4,7 +4,9 @@ name: "image-processor-compose"
 services:
   image-processor-server:
     image: image-processor
-    container_name: image-processor
+    container_name: image-processor-1
+    ports:
+     - 8080:8080
     build:
       dockerfile: Dockerfile
     healthcheck:
@@ -13,7 +15,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-      start_interval: 5s
     volumes:
       - images_data:/build/public/images
   prometheus:

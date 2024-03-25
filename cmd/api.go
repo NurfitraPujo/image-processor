@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/NurfitraPujo/image-processor/internal/handlers"
+	"github.com/NurfitraPujo/image-processor/internal/images"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	sloghttp "github.com/samber/slog-http"
 )
 
@@ -20,13 +21,12 @@ func StartServer() {
 	handler := sloghttp.Recovery(mux)
 	handler = sloghttp.New(logger)(handler)
 
-	imgDir := http.FileServer(http.Dir("public/images"))
-	mux.Handle("/images/", http.StripPrefix("/images/", imgDir))
-
+	mux.Handle("GET /metrics", promhttp.Handler())
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
 	})
 
+	mux.Handle("GET /images/", http.StripPrefix("/images/", http.FileServer(http.Dir("public/images"))))
 	mux.HandleFunc("POST /upload", func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseMultipartForm(1024); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -36,31 +36,15 @@ func StartServer() {
 		aliasFileName := r.FormValue("alias")
 		uploadedFile, handler, err := r.FormFile("file")
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			slog.Error("error when parsing form data", slog.String("error", err.Error()))
+
+			http.Error(w, "unexpected error when parsing form data", http.StatusInternalServerError)
 			return
 		}
 		defer uploadedFile.Close()
 
-		dir, err := os.Getwd()
+		err = images.SaveImage(aliasFileName, *handler, uploadedFile)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		filename := handler.Filename
-		if aliasFileName != "" {
-			filename = fmt.Sprintf("%s%s", aliasFileName, filepath.Ext(handler.Filename))
-		}
-
-		fileLocation := filepath.Join(dir, "public/images", filename)
-		targetFile, err := os.OpenFile(fileLocation, os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer targetFile.Close()
-
-		if _, err := io.Copy(targetFile, uploadedFile); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

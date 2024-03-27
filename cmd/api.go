@@ -8,26 +8,33 @@ import (
 
 	"github.com/NurfitraPujo/image-processor/internal/handlers"
 	"github.com/NurfitraPujo/image-processor/internal/images"
+	"github.com/NurfitraPujo/image-processor/internal/middlewares"
+	"github.com/go-chi/chi/v5"
+	chiMiddlewares "github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	sloghttp "github.com/samber/slog-http"
+	slogchi "github.com/samber/slog-chi"
 )
 
 func StartServer() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	mux := new(handlers.MiddlewareMux)
-	handler := sloghttp.Recovery(mux)
-	handler = sloghttp.New(logger)(handler)
+	mux := chi.NewMux()
 
-	mux.Handle("GET /metrics", promhttp.Handler())
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+	mux.Use(chiMiddlewares.RealIP)
+	mux.Use(slogchi.New(logger))
+	mux.Use(middlewares.PrometheusHttpMiddleware)
+	mux.Use(chiMiddlewares.Recoverer)
+
+	handlers.FileServer(mux, "/images/", http.Dir("public/images"))
+
+	mux.Get("/metrics", promhttp.Handler().ServeHTTP)
+	mux.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
 	})
 
-	mux.Handle("GET /images/", http.StripPrefix("/images/", http.FileServer(http.Dir("public/images"))))
-	mux.HandleFunc("POST /upload", func(w http.ResponseWriter, r *http.Request) {
+	mux.Post("/upload", func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseMultipartForm(1024); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -58,5 +65,5 @@ func StartServer() {
 	}
 
 	logger.Info(fmt.Sprintf("service started in port %s", port))
-	http.ListenAndServe(fmt.Sprintf(":%s", port), handler)
+	http.ListenAndServe(fmt.Sprintf(":%s", port), mux)
 }

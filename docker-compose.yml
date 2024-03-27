@@ -4,7 +4,7 @@ name: "image-processor-compose"
 services:
   image-processor-server:
     image: image-processor
-    container_name: image-processor-1
+    container_name: image-processor
     ports:
      - 8080:8080
     build:
